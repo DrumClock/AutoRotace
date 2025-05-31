@@ -27,9 +27,9 @@
 
  Funkce:
   Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL " / "Endc"
- - BUTTON_SET_PIN: přepíná mezi úhly (0–360) a zobrazuje např. "c 90"
- - BUTTON_SAVE_PIN: uloží napětí (ve voltech) pro aktuální úhel → zobrazuje "SEtc"
- - BUTTON_MAX_PIN: uloží napětí pro MAX úhel → zobrazuje "FuLL"
+ - tlačítko SET: přepíná mezi úhly (0–360) a zobrazuje např. "c 90"
+ - tlačítko SAVE: uloží napětí (ve voltech) pro aktuální úhel → zobrazuje "SEtc"
+ - tlačítko MAX: uloží napětí pro MAX úhel → zobrazuje "FuLL"
 
 Po 5 minutách nečinnosti se kalibrace automaticky ukončí
 EEPROM ukládá hodnoty jako float (napětí ve voltech)a
