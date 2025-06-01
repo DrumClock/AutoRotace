@@ -29,13 +29,17 @@
  Uložení / Načtení z EEPROM při restartu
 
  Funkce:
-  Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL " / "Endc"
- - BUTTON_SET_PIN: přepíná mezi úhly (0–360) a zobrazuje např. "c 90"
- - BUTTON_SAVE_PIN: uloží napětí (ve voltech) pro aktuální úhel → zobrazuje "SEtc"
- - BUTTON_MAX_PIN: uloží napětí pro MAX úhel → zobrazuje "FuLL"
+  Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
+   Tlačítko SET  - pro rot1 
+   Tlačítko SAVE - pro rot2
+   Tlačítko MAX  - pro rot3
 
-Po 5 minutách nečinnosti se kalibrace automaticky ukončí
-EEPROM ukládá hodnoty jako float (napětí ve voltech)a
+  Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL+číslo rotatoru" / "Endc" (při deaktivaci dojde k restartu MCU) 
+   Tlačítko SET  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
+   Tlačítko SAVE - uloží napětí (ve voltech) pro aktuální úhel → zobrazí "SEtc" a nastaví další úhel např. "c180"
+   Tlačítko MAX  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
+
+ Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
 
 
 // - Test propjení Tučňáka pomocí Hamlib protokolu
@@ -46,6 +50,14 @@ EEPROM ukládá hodnoty jako float (napětí ve voltech)a
 // D3, D5, D6, D9-11 jako PWM piny
 
 */
+
+// #################### inicializace knihoven ###########################
+
+#include <Adafruit_NeoPixel.h>
+#include <TM1637Display.h>
+#include <Encoder.h>
+#include <EEPROM.h>
+#include <math.h>
 
 // ############### zapojení  - Pinout  ########################
 
@@ -73,10 +85,11 @@ EEPROM ukládá hodnoty jako float (napětí ve voltech)a
 // Analogový vstup - azimut anteny
 #define ANALOG_PIN A0
 
-// Tlačítka pro nastavení SET, SAVE a MAX  ( kalibrace napětí/úhel )
+// Tlačítka pro kalibraci a předvolbu rotátoru 1-3 ( kalibrace napětí/úhel )
 #define BUTTON_SET_PIN A1
 #define BUTTON_SAVE_PIN A2
 #define BUTTON_MAX_PIN A3
+
 
 /*
 // volné piny
@@ -100,7 +113,6 @@ unsigned long lastChangeTime = 0;         // Čas poslední změny pozice enkod�
 const unsigned long InactiveTime = 4000;  // 4 sekund nečinnosti
 
 
-
 // Displej TM1637
 unsigned long lastUpdateTime = 0;          // Čas poslední změny
 const unsigned long updateInterval = 50;   //  interval aktualizace v ms
@@ -120,32 +132,6 @@ float DegPerLED = 360.0 / NumPixels;  // Počet stupňů na jednu LED
 unsigned long currentMillis = millis();
 
 
-// Analog input  (potenciometr)
-const int ADC_MaxValue = 1023;
-const float ADC_RefVoltage = 5.0;  // Referenční napětí ADC nebo 3.3 dle MCU
-float lastAngle = -1;
-int lastSensorValue = 0;            // Uloží poslední hodnotu potenciometru
-const float HysteresisAngle = 3.0;  // Hranice hystereze nastavit dle citlivosti
-
-
-// Kalibrace (potenciometr)
-const int NumCalibrationPoints = 5;
-float voltagePoints[NumCalibrationPoints];
-float anglePoints[NumCalibrationPoints] = { 0, 90, 180, 270, 360 };
-float voltageAtMax = 0;
-float MaxAngle = 365;
-const unsigned int LONG_PRESS_DURATION = 1500;  // 1,5 sekundy
-const unsigned long IDLE_TIMEOUT = 300000;      // 5 minut
-unsigned long lastActivityTime = 0;
-bool calibrationMode = false;
-int angleIndex = 0;
-
-
-//  EEPROM adresy
-const int EEPROM_START_ADDR = 0;
-const int EEPROM_EXT_ADDR = EEPROM_START_ADDR + NumCalibrationPoints * sizeof(float);
-
-
 // Parametry řízení motoru BTS7960
 const int maxSpeed = 255;        // max PWM
 const float rampTimeUp = 0.5;    // čas pro zrychlení v sekundách
@@ -156,12 +142,49 @@ bool direction = true;  // true = CW, false = CCW
 int currentSpeed = 0;
 
 
+// Analog input  (potenciometr)
+const int ADC_MaxValue = 1023;
+const float ADC_RefVoltage = 5.0;  // Referenční napětí ADC nebo 3.3 dle MCU
+float lastAngle = -1;
+int lastSensorValue = 0;            // Uloží poslední hodnotu potenciometru
+const float HysteresisAngle = 3.0;  // Hranice hystereze nastavit dle citlivosti
+
+
+// Kalibrace (potenciometr)
+const int NumCalibrationPoints = 5;
+float voltagePoints[NumCalibrationPoints];  // jsou v EEPROM
+float anglePoints[NumCalibrationPoints] = { 0, 90, 180, 270, 360 };
+float voltageAtMax = 0.00;
+float MaxAngle = 365.00;
+const unsigned int LONG_PRESS_DURATION = 1500;  // 1,5 sekundy
+const unsigned long IDLE_TIMEOUT = 300000;      // 5 minut
+unsigned long lastActivityTime = 0;
+bool calibrationMode = false;
+int angleIndex = 0;
+
+
+// Profil kalibrace - pro více rotátorů
+int currentProfile = 0;
+int MaxProfiles = 3;
+
+// EEPROM rozložení:
+// [0] = currentProfile (1 bajt)
+// [1..] = profily (každý 24 bajtů)
+
+
 // parametry pro Rotator - Tučňák
 int azimuth = 0;    // Aktuální azimut
 int elevation = 0;  // Aktuální elevace
 
 
-// ------------------ Interpolace dráhy potenciometru ------------------
+// #################### inicializace zařízení ###########################
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NumPixels, PIN_LED, NEO_GRB + NEO_KHZ800);
+TM1637Display display(CLK, DIO);
+Encoder enc(PIN_CLK, PIN_DT);
+
+
+// ####################  Inter(Extra)polace dráhy potenciometru  ####################
 
 float voltageToAngleInterpolated(float voltage) {
   for (int i = 0; i < NumCalibrationPoints - 1; i++) {
@@ -172,31 +195,79 @@ float voltageToAngleInterpolated(float voltage) {
 
     if ((v1 <= voltage && voltage <= v2) || (v1 >= voltage && voltage >= v2)) {
       float ratio = (voltage - v1) / (v2 - v1);
-      return a1 + ratio * (a2 - a1);
+      float intrapolatedAngle = a1 + ratio * (a2 - a1);
+
+      return intrapolatedAngle;
     }
   }
-
-  // Extrapolace za 360 stupňů (na základě posledních dvou bodů 360 a MAX )
+  // Extrapolace za poslední úsek
   float v1 = voltagePoints[NumCalibrationPoints - 2];
   float v2 = voltagePoints[NumCalibrationPoints - 1];
   float a1 = anglePoints[NumCalibrationPoints - 2];
   float a2 = anglePoints[NumCalibrationPoints - 1];
-  float slope = (a2 - a1) / (v2 - v1);
+
+  float slope = (a2 - a1) / (v2 - v1);  // funguje i pro klesající v2 < v1
   float deltaV = voltage - v2;
-  return a2 + slope * deltaV;
+  float extrapolatedAngle = a2 + slope * deltaV;
+
+  return extrapolatedAngle;
 }
 
-// #################### inicializace knihoven ###########################
 
-#include <Adafruit_NeoPixel.h>
-#include <TM1637Display.h>
-#include <Encoder.h>
-#include <EEPROM.h>
+// ####################  načtení posledního uloženého profilu MEM   ####################
+
+// Adresa EEPROM pro profil (od adresy 1 – adresa 0 je currentProfile)
+int getProfileBaseAddress(int profile) {
+  return 1 + profile * (NumCalibrationPoints * sizeof(float) + sizeof(float));
+}
 
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NumPixels, PIN_LED, NEO_GRB + NEO_KHZ800);
-TM1637Display display(CLK, DIO);
-Encoder enc(PIN_CLK, PIN_DT);
+// Načte hodnoty z EEPROM pro zvolený profil
+void loadProfileFromEEPROM(int profile) {
+  if (profile < 0 || profile >= MaxProfiles) return;
+
+  int base = getProfileBaseAddress(profile);
+
+  for (int i = 0; i < NumCalibrationPoints; i++) {
+    EEPROM.get(base + i * sizeof(float), voltagePoints[i]);
+  }
+
+  EEPROM.get(base + NumCalibrationPoints * sizeof(float), voltageAtMax);
+
+  // aktualizace MaxAngle
+  float measuredVoltage = voltageAtMax;
+  MaxAngle = voltageToAngleInterpolated(measuredVoltage);
+  MaxAngle = floor(MaxAngle);
+
+
+  Serial.print("Načten profil: ");
+  Serial.println(profile);
+
+  Serial.print("Rotátor č. ");
+  Serial.println(currentProfile + 1);
+
+  Serial.println("== Napětí podle úhlů ==");
+  for (int i = 0; i < NumCalibrationPoints; i++) {
+    Serial.print("Úhel ");
+    Serial.print(anglePoints[i]);
+    Serial.print("°: ");
+    Serial.print(voltagePoints[i]);
+    Serial.println(" V");
+  }
+
+  Serial.print("MAX  ");
+  Serial.print(MaxAngle);
+  Serial.print(" = ");
+  Serial.print(voltageAtMax, 3);
+  Serial.println(" V");
+  
+  // zobrazení profilu rotátoru (MEM)
+  uint8_t digits[4] = { 0x50, 0x5c, 0x78, display.encodeDigit(int(profile + 1)) };  // rot1...rot3
+  display.setSegments(digits, 4, 0);
+  delay(1500);
+
+  saveCurrentProfile();  // // ulož aktualní rotátor   
+}
 
 
 // ################# test LED Neopixel + Displej při resetu MCU #############################
@@ -226,6 +297,7 @@ void test_LED_DISPLAY(int interval = 1) {
   strip.show();   // Aktualizace LED pásku
   display.clear();
 }
+
 
 
 // ################################################################
@@ -264,10 +336,11 @@ void setup() {
   // test LED a Displeje při startu MCU
   test_LED_DISPLAY();
 
-  // načtení kalibrace potenciometru z EEPROM
-  loadEEPROMValues();
+  // načtení kalibrace potenciometru z EEPROM  
+  loadCurrentProfile();                   // Načti číslo profilu z EEPROM
+  loadProfileFromEEPROM(currentProfile);  // Načti data profilu
+  
 }
-
 
 // ################################################################
 // ############################# loop #############################
@@ -281,20 +354,6 @@ void loop() {
   // ############################# kalibrace potenciometru ##############################
   // pomocí tlačítek SET, SAVE, MAX
   checkButtons();
-
-  // autoatické ukončrní kalibrace po xxx min nečinosti
-  if (calibrationMode && (millis() - lastActivityTime > IDLE_TIMEOUT)) {
-    calibrationMode = false;
-    uint8_t digits[4];  // Pole pro zobrazení
-    digits[0] = 0x79;
-    digits[1] = 0x54;
-    digits[2] = 0x5e;
-    digits[3] = 0x58;  // Endc
-    display.setSegments(digits, 4, 0);
-    delay(1500);
-    Angle_display(lastAngle);  // Funkce pro zobrazení "úhlu anteny"
-  }
-
 
   // ############################# Snímání azimutu (potenciometr) #############################
 
@@ -574,6 +633,7 @@ void setMotorSpeed(int speed) {
 // ##############################   Kalibrace potenciometru   ############################################
 
 void checkButtons() {
+
   static unsigned long pressStart = 0;
   static bool buttonPressed = false;
   static uint8_t pressedButton = 0;
@@ -614,7 +674,7 @@ void checkButtons() {
         digits[0] = 0x39;
         digits[1] = 0x77;
         digits[2] = 0x38;
-        digits[3] = 0x00;  // CaL
+        digits[3] = display.encodeDigit(int(currentProfile + 1));  // CaL + číslo profilu
         display.setSegments(digits, 4, 0);
         //Serial.println("Entering calibration mode");
         delay(1500);
@@ -623,7 +683,7 @@ void checkButtons() {
 
 
       } else {
-        // Ukončení kalibrace
+        // Ukončení kalibrace a reset MCU
         calibrationMode = false;
         digits[0] = 0x79;
         digits[1] = 0x54;
@@ -632,7 +692,8 @@ void checkButtons() {
         display.setSegments(digits, 4, 0);
         //Serial.println("Exiting calibration mode");
         delay(1500);
-        Angle_display(lastAngle);  // Funkce pro zobrazení "úhlu anteny"
+        asm volatile("  jmp 0");  // Skok na adresu 0, což způsobí restart MCU
+        //Angle_display(lastAngle);  // Funkce pro zobrazení "úhlu anteny"
       }
 
       lastActivityTime = millis();
@@ -655,8 +716,8 @@ void checkButtons() {
           digits[3] = 0x58;  // SEtc
           display.setSegments(digits, 4, 0);
           delay(1500);
-          angleIndex = (angleIndex + 1) % NumCalibrationPoints;
-          Calibrate_display();  // Funkce pro zobrazení "úhlu pri kalibraci"
+          angleIndex = (angleIndex + 1) % NumCalibrationPoints;  // nastaví další úhel
+          Calibrate_display();                                   // Funkce pro zobrazení "úhlu pri kalibraci"
           //Serial.println("Angle saved");
           break;
 
@@ -668,13 +729,7 @@ void checkButtons() {
           digits[3] = 0x38;  // FuLL
           display.setSegments(digits, 4, 0);
           delay(1500);
-
-          // výpočet nového MaxAngle
-          float measuredVoltage = voltageAtMax;
-          MaxAngle = voltageToAngleInterpolated(measuredVoltage);
-
-          Calibrate_display();  // Funkce pro zobrazení "úhlu pri kalibraci"
-          //Serial.println("Max voltage saved");
+          asm volatile("  jmp 0");  // Skok na adresu 0, což způsobí restart MCU                                   
           break;
 
         default:
@@ -686,45 +741,48 @@ void checkButtons() {
       lastActivityTime = millis();
     }
 
-    // --- Krátký stisk mimo kalibraci: nedělat nic ---
+    // --- Krátký stisk mimo kalibraci:  nastaví sadu rot1 - rot3
     else {
-      //Serial.println("Short press ignored: not in calibration mode");
-      info_button();
+      
+      switch (pressedButton) {
+        case 1:  // Set
+          currentProfile = 0;                         
+          loadProfileFromEEPROM(currentProfile);  // Načti data pro rot1                     
+          break;
+
+        case 2:  // Save
+          currentProfile = 1;                    
+          loadProfileFromEEPROM(currentProfile); // Načti data pro rot2
+          break;
+
+        case 3:  // Max
+          currentProfile = 2;                                       
+          loadProfileFromEEPROM(currentProfile); // Načti data pro rot3  
+          break;
+
+        default:
+          //Serial.println("Short press ignored: invalid or multiple buttons");
+          break;
+      }
     }
 
     pressedButton = 0;  // reset
   }
-}
 
-
-void info_button() {
-  uint8_t digits[4];  // pole segmentových hodnot
-
-  for (int i = 0; i < 2; i++) {
-    digits[0] = 0x73;
-    digits[1] = 0x50;
-    digits[2] = 0x79;
-    digits[3] = 0x6d;  //PrES
+  // autoatické ukončrní kalibrace po xxx min nečinosti bez resetu MCU
+  if (calibrationMode && (millis() - lastActivityTime > IDLE_TIMEOUT)) {
+    calibrationMode = false;
+    uint8_t digits[4];  // Pole pro zobrazení
+    digits[0] = 0x79;
+    digits[1] = 0x54;
+    digits[2] = 0x5e;
+    digits[3] = 0x58;  // Endc
     display.setSegments(digits, 4, 0);
-    delay(500);
-
-    digits[0] = 0x38;
-    digits[1] = 0x5c;
-    digits[2] = 0x54;
-    digits[3] = 0x3d;  //LonG
-    display.setSegments(digits, 4, 0);
-    delay(500);
-
-    digits[0] = 0x7c;
-    digits[1] = 0x1c;
-    digits[2] = 0x78;
-    digits[3] = 0x78;  //butt
-
-    display.setSegments(digits, 4, 0);
-    delay(500);
+    delay(1500);
+    Angle_display(lastAngle);  // Funkce pro zobrazení "úhlu anteny"
   }
-  Angle_display(lastAngle);  // Funkce pro zobrazení "úhlu anteny"
 }
+
 
 
 void Calibrate_display() {
@@ -751,55 +809,64 @@ void Calibrate_display() {
 }
 
 
+// Uloží jednu hodnotu z anglePoints[index]
 void saveAngleVoltage(int index) {
+
   float voltage = analogRead(ANALOG_PIN) * (ADC_RefVoltage / ADC_MaxValue);
   voltagePoints[index] = voltage;
 
-  EEPROM.put(EEPROM_START_ADDR + index * sizeof(float), voltage);
+  if (index < 0 || index >= NumCalibrationPoints) return;
 
-  Serial.print("Uloženo: úhel ");
-  Serial.print(anglePoints[index]);
-  Serial.print(" = ");
-  Serial.print(voltage, 3);
-  Serial.println(" V");
+  int base = getProfileBaseAddress(currentProfile);
+  int addr = base + index * sizeof(float);
+
+  EEPROM.put(addr, voltagePoints[index]);
+  Serial.print("Uloženo: voltagePoints[");
+  Serial.print(index);
+  Serial.print("] = ");
+  Serial.println(voltagePoints[index]);
 }
 
 
+// Uloží hodnotu voltageAtMax
 void saveMaxVoltage() {
   float voltage = analogRead(ANALOG_PIN) * (ADC_RefVoltage / ADC_MaxValue);
   voltageAtMax = voltage;
-  EEPROM.put(EEPROM_EXT_ADDR, voltage);
 
-  Serial.print("Uloženo: MAX = ");
-  Serial.print(voltage, 3);
-  Serial.println(" V");
+  int base = getProfileBaseAddress(currentProfile);
+  int addr = base + NumCalibrationPoints * sizeof(float);
+
+  EEPROM.put(addr, voltageAtMax);
+  Serial.print("Uloženo voltageAtMax = ");
+  Serial.println(voltageAtMax);
 }
 
 
-void loadEEPROMValues() {
-  for (int i = 0; i < NumCalibrationPoints; i++) {
-    EEPROM.get(EEPROM_START_ADDR + i * sizeof(float), voltagePoints[i]);
-  }
-  EEPROM.get(EEPROM_EXT_ADDR, voltageAtMax);
 
-  // aktualizace MaxAngle
-  float measuredVoltage = voltageAtMax;  
-  MaxAngle = voltageToAngleInterpolated(measuredVoltage);
+// Uloží číslo profilu na EEPROM[0]
+void saveCurrentProfile() {
+  EEPROM.update(0, currentProfile);
 
-  Serial.println("Načtené hodnoty z EEPROM:");
-  for (int i = 0; i < NumCalibrationPoints; i++) {
-    Serial.print("Úhel ");
-    Serial.print(anglePoints[i]);
-    Serial.print(" = ");
-    Serial.print(voltagePoints[i], 3);
-    Serial.println(" V");
-  }
-  Serial.print("MAX  ");
-  Serial.print(MaxAngle);
-  Serial.print(" = ");
-  Serial.print(voltageAtMax, 3);
-  Serial.println(" V");
+  uint8_t digits[] = { 0x50, 0x5c, 0x78, display.encodeDigit(int(currentProfile + 1)) };  // rot1...rot3
+  display.setSegments(digits, 4, 0);
+  delay(1500);
+
+  Serial.print("Nastaven Rotátor č: ");
+  Serial.println(currentProfile+1);
 }
+
+
+// Načte číslo profilu z EEPROM[0]
+void loadCurrentProfile() {
+  int stored = EEPROM.read(0);
+  if (stored >= 0 && stored < MaxProfiles) {
+    currentProfile = stored;
+  } else {
+    currentProfile = 0;  // Výchozí hodnota
+  }  
+}
+
+
 
 
 // ##############################   GS-232B protokol - Hamlib / Tučňák OK1ZIA  ############################################
