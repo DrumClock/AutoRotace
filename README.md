@@ -13,8 +13,8 @@
 
 # Funkce ovládání
 
- Po zapnutí (resetu) dojde k testu všech LED a Displeje
- Po tomto testu se rozsvítí na kruhové mapě modrá LED na pozici 0 (sever),
+ Po zapnutí (resetu) dojde k testu všech LED a Displeje.
+ Po testu se rozsvítí na kruhové mapě modrá LED na pozici 0 (sever),
  nyní můžeme stisknout encoder a rotátor se nastaví na pozici "sever".
  Pokud tak neučiníme LED po 3s zhasne.
 
