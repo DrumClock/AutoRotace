@@ -29,8 +29,7 @@
   PWM řízení H-můstku BTS7960, je možno definovat v programu čas
  'rampTimeUp' a 'rampTimeDown' pro plynulý rozjezd a dojezd.
 
-
- Kalibrace potenciometru pomocí tlačítek SET,SAVE,MAX
+ Kalibrace potenciometru pomocí tlačítek 
  Uložení / Načtení z EEPROM při restartu
 
  # Funkce tlačítek:
