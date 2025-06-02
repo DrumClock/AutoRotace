@@ -51,7 +51,7 @@ Kalibrace potenciometru pomocí tlačítek M1/C, M2/S, M3/F a uložení do EEPRO
 ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/Arduino_Sever_2.png)
 
 # MAPA z JN69NX
-- přiložený soubor **mapa JN69NX.cdr** je pro grafický editor **CorelDraw** 
+- přiložený soubor **`mapa JN69NX.cdr`** je pro grafický editor **`CorelDraw`** 
 
 ![mapa_frame](https://github.com/DrumClock/AutoRotace/blob/main/mapa.png) 
 
