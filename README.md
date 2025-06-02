@@ -32,19 +32,22 @@
 
  # Funkce tlačítek:
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
-   Tlačítko SET  - pro rot1 
-   Tlačítko SAVE - pro rot2
-   Tlačítko MAX  - pro rot3
+  - Tlačítko SET  - pro rot1 
+  - Tlačítko SAVE - pro rot2
+  - Tlačítko MAX  - pro rot3
 
   Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL+číslo rotatoru" / "Endc" (při deaktivaci dojde k restartu MCU) 
-   Tlačítko SET  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
-   Tlačítko SAVE - uloží napětí (ve voltech) pro aktuální úhel → zobrazí "SEtc" a nastaví další úhel např. "c180"
-   Tlačítko MAX  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
+  - Tlačítko SET  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
+  - Tlačítko SAVE - uloží napětí (ve voltech) pro aktuální úhel → zobrazí "SEtc" a nastaví další úhel např. "c180"
+  - Tlačítko MAX  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
 
 
+# Video:  https://youtu.be/hEBSZyiuYrg
 
-video:  https://youtu.be/hEBSZyiuYrg
+
+# Schéma:
+![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/Arduino_Sever_2.png)
 
  
