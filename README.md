@@ -26,14 +26,11 @@
  současnému tisku a rychlému změně směru. Takže mezi změnou směru je
  prodleva 1s, toto zabrání k rázům a zmenší namáhání převodů rotátoru.
 
-  PWM řízení H-můstku BTS7960, je možno definovat v programu čas
- 'rampTimeUp' a 'rampTimeDown' pro plynulý rozjezd a dojezd.
+Kalibrace potenciometru pomocí tlačítek a uložení do EEPROM 
+
 
  # Funkce tlačítek:
  
- - Kalibrace potenciometru pomocí tlačítek 
- - Uložení / Načtení z EEPROM při restartu
-
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
   - Tlačítko **M1**  - pro rot1 
   - Tlačítko **M2**  - pro rot2
