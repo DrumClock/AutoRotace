@@ -54,7 +54,7 @@
 ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/Arduino_Sever_2.png)
 
 # MAPA z JN69NX
-( přiložený soubor *.cdr je pro grafický editor **CorelDraw** )
+( přiložený soubor **mapa JN69NX.cdr** je pro grafický editor **CorelDraw** )
 
 ![mapa_frame](https://github.com/DrumClock/AutoRotace/blob/main/mapa.png) 
 
