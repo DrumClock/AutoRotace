@@ -1,3 +1,5 @@
+
+
 ###############  VERZE - 1.6.2025  #####################
 
  - Ovládání motoru rotátoru pomocí H-můstku 
