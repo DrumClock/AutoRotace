@@ -39,3 +39,9 @@
    Tlačítko MAX  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
+
+
+
+video:  https://youtu.be/hEBSZyiuYrg
+
+ 
