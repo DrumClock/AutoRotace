@@ -1,6 +1,6 @@
+![Rotator_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_panel.jpg)
 
-
-###############  VERZE - 1.6.2025  #####################
+# Popis
 
  - Ovládání motoru rotátoru pomocí H-můstku 
  - Snímání azimutu pomocí potenciometru (napěťový dělič)
@@ -8,9 +8,10 @@
  - zobrazení arimutu pomocí LED na krukové mapě
  - AUTOROTACE pomocí nastavení encoderem
 
+# Funkce ovládání
 
  Po zapnutí (resetu) dojde k testu všech LED a Displeje
- Po tomto testu se rozsvítí modráLED na pozisi 0 (sever),
+ Po tomto testu se rozsvítí na kruhové mapě modrá LED na pozici 0 (sever),
  nyní můžeme stisknout encoder a rotátor se nastaví na pozici "sever".
  Pokud tak neučiníme LED po 3s zhasne.
 
@@ -29,7 +30,7 @@
  Kalibrace potenciometru pomocí tlačítek SET,SAVE,MAX
  Uložení / Načtení z EEPROM při restartu
 
- Funkce:
+ # Funkce tlačítek:
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
    Tlačítko SET  - pro rot1 
    Tlačítko SAVE - pro rot2
