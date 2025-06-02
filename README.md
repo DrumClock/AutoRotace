@@ -1,12 +1,15 @@
+# Ovládání rotátoru "SEVER"
+
 ![Rotator_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_panel.jpg)
 
 # Popis
 
- - Ovládání motoru rotátoru pomocí H-můstku 
+ - Ovládání DC motoru (24V) rotátoru pomocí H-můstku 
  - Snímání azimutu pomocí potenciometru (napěťový dělič)
- - Zobrazení azimutu / úhlu na displeji TM1637
+ - Zobrazení azimutu na displeji TM1637
  - zobrazení arimutu pomocí LED na krukové mapě
- - AUTOROTACE pomocí nastavení encoderem
+ - nastavení AUTOROTACE encoderem KY-040
+ - kalibrace snímače a uložení do EEPROM (max. 3 rotátory)
 
 # Funkce ovládání
 
@@ -23,7 +26,7 @@
  současnému tisku a rychlému změně směru. Takže mezi změnou směru je
  prodleva 1s, toto zabrání k rázům a zmenší namáhání převodů rotátoru.
 
- Přidáno PWM řízení H-můstku BTS7960, možno definovat čas
+  PWM řízení H-můstku BTS7960, je možno definovat v programu čas
  'rampTimeUp' a 'rampTimeDown' pro plynulý rozjezd a dojezd.
 
 
