@@ -7,7 +7,7 @@
  - Ovládání DC motoru rotátoru pomocí H-můstku (24V)
  - Snímání azimutu pomocí potenciometru (napěťový dělič)
  - Zobrazení azimutu na displeji TM1637
- - zobrazení arimutu pomocí LED na krukové mapě
+ - zobrazení arimutu pomocí LED na krukové mapě (Neopixel 60 LED)
  - nastavení AUTOROTACE encoderem KY-040
  - kalibrace snímače a uložení do EEPROM (max. 3 rotátory)
 
