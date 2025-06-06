@@ -1,5 +1,5 @@
 /*
- ###############  VERZE - 1.6.2025  #####################
+ ###############  VERZE - 6.6.2025  #####################
 
  - Ovládání motoru rotátoru pomocí H-můstku 
  - Snímání azimutu pomocí potenciometru (napěťový dělič)
@@ -173,8 +173,10 @@ int MaxProfiles = 3;
 
 
 // parametry pro Rotator - Tučňák
-int azimuth = 0;    // Aktuální azimut
-int elevation = 0;  // Aktuální elevace
+int Hamlib_Azimuth = 0; // přijatý azimut
+int Hamlib_Elevation = 0; // přijatá elevace
+int lastElevation = 0; // aktuální elevace
+
 
 
 // #################### inicializace zařízení ###########################
@@ -306,7 +308,7 @@ void test_LED_DISPLAY(int interval = 1) {
 
 void setup() {
 
-  Serial.begin(115200);  // Inicializace sériového výstupu
+  Serial.begin(9600);  // Inicializace sériového výstupu
 
   strip.begin();
   strip.setBrightness(LedBrightness);
@@ -349,7 +351,7 @@ void setup() {
 void loop() {
 
   // ############################# ovladaní rotatoru pomocí Tučňáka -Hamlib ##############################
-  HamlibRotorSerial();  // Zavolej obslužnou funkci
+  Hamlib_Tucnak();
 
   // ############################# kalibrace potenciometru ##############################
   // pomocí tlačítek SET, SAVE, MAX
@@ -869,47 +871,130 @@ void loadCurrentProfile() {
 
 
 
-// ##############################   GS-232B protokol - Hamlib / Tučňák OK1ZIA  ############################################
-// C2  - vypíše aktuální azimut
-// C002, C90, C221, C345  - nastaví autorotaci na azimut
+// ##############################    Hamlib / Tučňák OK1ZIA  ############################################
+/*
+příjem příkazů na seriové lince na základě protokolu https://hamlib.sourceforge.net/html/rotctl.1.html#COMMANDS
 
-void HamlibRotorSerial() {
-  static char input[16];
-  static byte index = 0;
+Rotátor např.:  rotctl -l
+ Rot #  Mfg         Model       Version         Status        Macro
+   601  Yaesu       GS-232A     20201203.0      Beta          ROT_MODEL_GS232A
+
+
+C:\Program Files (x86)\Tucnak> rotctl -vvvvv -m 601 -r COM3  
+
+--------------------------------------------------------------------------------------
+
+Rotator command: P
+Azimuth: 65
+Elevation: 0
+
+rot_set_position called az=65.00 el=0.00
+rot_set_position: south_zero=0
+gs232a_rot_set_position called: 65.00 0.00
+rig_flush: called for serial device
+serial.c(642):serial_flush entered
+tcflush
+serial.c(674):serial_flush return(0)
+write_block(): TX 9 bytes
+0000    57 30 36 35 20 30 30 30 0d                          W065 000.
+
+--------------------------------------------------------------------------------------
+
+Rotator command: p
+
+rot_get_position called
+gs232a_rot_get_position called
+rig_flush: called for serial device
+serial.c(642):serial_flush entered
+tcflush
+serial.c(674):serial_flush return(0)
+write_block(): TX 3 bytes
+0000    43 32 0d                                            C2.
+read_string called, rxmax=32
+read_string(): RX 11 characters
+0000    2b 30 30 38 31 2b 30 30 30 30 0d                    +0081+0000.
+gs232a_rot_get_position: (az, el) = (81.0, 0.0)
+rot_get_position: got az=81.00, el=0.00
+Azimuth: 81.00
+Elevation: 0.00
+
+*/
+
+
+void Hamlib_Tucnak() {
+  static String lineBuffer = "";
 
   while (Serial.available()) {
     char c = Serial.read();
 
     if (c == '\r' || c == '\n') {
-      input[index] = '\0';
-      index = 0;
+      lineBuffer.trim();
 
-      if (input[0] == 'C') {
-        if (strcmp(input, "C2") == 0) {
-          // Přesně "C2" → čti aktuální pozici
-          char response[16];
-          sprintf(response, "%03d", azimuth);  // bez elevace
+      if (lineBuffer.length() >= 2) {
+        if (lineBuffer.startsWith("C2")) {
+          send_LastPosition();
+        }
+        else if (lineBuffer.startsWith("W")) {
+          String params = lineBuffer.substring(1);
+          params.trim();
 
-          Serial.print("Poslední pozice: ");
-          Serial.println(response);
-        } else {
-          // Jinak: nastav azimut z input[1..]
-          int newAz = atoi(&input[1]);
-          if (newAz >= 0 && newAz <= 360) {
-            azimuth = newAz;
-            AutoRotate = newAz;
-            Serial.print("Nastavený azimut: ");
-            Serial.println(azimuth);
+          int spaceIndex = params.indexOf(' ');
+          if (spaceIndex > 0) {
+            String azStr = params.substring(0, spaceIndex);
+            String elStr = params.substring(spaceIndex + 1);
+            azStr.trim();
+            elStr.trim();
+
+            int az = azStr.toInt();
+            int el = elStr.toInt();
+
+            // Převod azimutu z -180..+180 na 0..360
+            if (az < 0) {
+              az = 360 + az;
+            }
+            // (volitelně) omezit na 0..360 (pro jistotu)
+            if (az >= 360) az -= 360;
+            if (az < 0) az = 0;
+
+            Hamlib_Azimuth = az;
+            Hamlib_Elevation = el;
+
+
+            // nastavení Azimutu a elevace z progamu Tučňák (Alt+R)
+            AutoRotate = Hamlib_Azimuth;
+            lastElevation = Hamlib_Elevation;
+            
+
+            display.showNumberDec(Hamlib_Azimuth, false);  // potlačí úvodní "0"
           }
         }
       }
 
-    } else {
-      if (index < sizeof(input) - 1) {
-        input[index++] = c;
-      }
+      lineBuffer = "";
+    }
+    else {
+      lineBuffer += c;
     }
   }
+}
+
+
+void send_LastPosition() {
+  char buffer[12];
+
+  auto formatSigned = [](int val, char *out) {
+    char sign = (val < 0) ? '-' : '+';
+    int absVal = abs(val);
+    snprintf(out, 6, "%c0%03d", sign, absVal);  // Přidá "0" před číslo => +0xxx
+  };
+
+  char azBuf[6], elBuf[6];  // Potřeba místa pro '\0'
+ 
+  formatSigned(lastAngle, azBuf);
+  formatSigned(lastElevation, elBuf);
+
+  snprintf(buffer, sizeof(buffer), "%s%s\r", azBuf, elBuf);  // Bez mezery mezi hodnotami
+  Serial.print(buffer);
 }
 
 
