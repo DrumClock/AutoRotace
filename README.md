@@ -29,19 +29,19 @@
 Kalibrace potenciometru pomocí tlačítek M1/C, M2/S, M3/F a uložení do EEPROM 
 
 
- # Funkce tlačítek:
+ # Funkce tlačítek "Kalibrace"
 
  ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_kalibrace.jpg)
  
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
-  - Tlačítko **`M1`**  - pro rot1 
-  - Tlačítko **`M2`**  - pro rot2
-  - Tlačítko **`M3`**  - pro rot3
+  - Tlačítko **`M1`**  - displej zobrazí "rot1" 
+  - Tlačítko **`M2`**  - displej zobrazí "rot2"
+  - Tlačítko **`M3`**  - displej zobrazí "rot3"
 
-  Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL+číslo rotatoru" / "Endc" (při deaktivaci dojde k restartu MCU) 
-  - Tlačítko **`C`**  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
-  - Tlačítko **`S`**  - uloží napětí (ve voltech) pro aktuální úhel zobrazí "SEtc" a nastaví další úhel např. "c180"
-  - Tlačítko **`F`**  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
+  Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - displej zobrazí "CAL+číslo rotatoru" nebo "Endc" (při deaktivaci dojde k restartu MCU) 
+  - Tlačítko **`C`**  - přepíná mezi kalibračnímy úhly (0,90,180,270,360) a displejv zobrazuje např. "c 90"
+  - Tlačítko **`S`**  - uloží napětí (ve voltech) pro aktuální úhel displej zobrazí "SEtc" a nastaví další úhel např. "c180"
+  - Tlačítko **`F`**  - uloží napětí pro MAX úhel displej zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
 
