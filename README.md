@@ -30,6 +30,8 @@ Kalibrace potenciometru pomocí tlačítek M1/C, M2/S, M3/F a uložení do EEPRO
 
 
  # Funkce tlačítek:
+
+ ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_kalibrace.jpg)
  
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
   - Tlačítko **`M1`**  - pro rot1 
