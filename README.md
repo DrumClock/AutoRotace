@@ -47,16 +47,20 @@
   - Tlačítko **`S`**  - uloží napětí (ve voltech) pro aktuální úhel displej zobrazí "SEtc" a nastaví další úhel např. "c180"
   - Tlačítko **`F`**  - uloží napětí pro MAX úhel displej zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
 
- Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
+ Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)<br>
 
- # Nastavení VHF logu Tučňák "
+ # Nastavení VHF logu Tučňák 
 ![Tucnak_frame](https://github.com/DrumClock/AutoRotace/blob/main/Tu%C4%8D%C5%88%C3%A1k%20-%20nastaven%C3%AD%20rot%C3%A1toru.png)
 
 Po tomto nastavení je aktivní odeslání azimutu:
-- **Alt+R** zadání azimutu ručně a odeslání
-- **Ctrl+A** převezme azimut ze zadaného LOC
 
+**Alt+R** - zadání azimutu ručně a odeslání <br>
+![alt_r](https://github.com/DrumClock/AutoRotace/blob/main/alt_r.png)
+ 
+**Ctrl+A** - převezme azimut ze zadaného LOC <br>
+![ctrl_a](https://github.com/DrumClock/AutoRotace/blob/main/ctrl_a.png) 
 
+<br>
 
 # Video:  https://youtu.be/hEBSZyiuYrg
 
