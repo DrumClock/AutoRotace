@@ -49,6 +49,14 @@
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
 
+ # Nastavení VHF logu Tučňák "
+![Tucnak_frame](https://github.com/DrumClock/AutoRotace/blob/main/Tu%C4%8D%C5%88%C3%A1k%20-%20nastaven%C3%AD%20rot%C3%A1toru.png)
+
+Po tomto nastavení je aktivní odeslání azimutu:
+- **Alt+R** zadání azimutu ručně a odeslání
+- **Ctrl+A** převezme azimut ze zadaného LOC
+
+
 
 # Video:  https://youtu.be/hEBSZyiuYrg
 
