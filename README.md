@@ -54,10 +54,10 @@
 
 Po tomto nastavení je aktivní odeslání azimutu:
 
-**Alt+R** - zadání azimutu ručně a odeslání <br>
+**`Alt+R`** - zadání azimutu ručně a odeslání <br>
 ![alt_r](https://github.com/DrumClock/AutoRotace/blob/main/alt_r.png)
  
-**Ctrl+A** - převezme azimut ze zadaného LOC <br>
+**`Ctrl+A`** - převezme azimut ze zadaného LOC <br>
 ![ctrl_a](https://github.com/DrumClock/AutoRotace/blob/main/ctrl_a.png) 
 
 <br>
