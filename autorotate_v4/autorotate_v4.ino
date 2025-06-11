@@ -1,5 +1,5 @@
 /*
- ###############  VERZE - 6.6.2025  #####################
+ ###############  VERZE - 11.6.2025  #####################
 
  - Ovládání motoru rotátoru pomocí H-můstku 
  - Snímání azimutu pomocí potenciometru (napěťový dělič)
@@ -25,24 +25,24 @@
  'rampTimeUp' a 'rampTimeDown' pro plynulý rozjezd a dojezd.
 
 
- Kalibrace potenciometru pomocí tlačítek SET,SAVE,MAX
+ Kalibrace potenciometru pomocí tlačítek M1/C, M2/S, M3/F
  Uložení / Načtení z EEPROM při restartu
 
  Funkce:
   Krátkým stiskem načteme 3 uložené předvolby kalibrace pro různé rotátory
-   Tlačítko SET  - pro rot1 
-   Tlačítko SAVE - pro rot2
-   Tlačítko MAX  - pro rot3
+   Tlačítko M1/C  - pro rot1 
+   Tlačítko M2/S  - pro rot2
+   Tlačítko M3/F  - pro rot3
 
   Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci - "CAL+číslo rotatoru" / "Endc" (při deaktivaci dojde k restartu MCU) 
-   Tlačítko SET  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
-   Tlačítko SAVE - uloží napětí (ve voltech) pro aktuální úhel → zobrazí "SEtc" a nastaví další úhel např. "c180"
-   Tlačítko MAX  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
+   Tlačítko M1/C  - přepíná mezi kalibračnímy úhly (0–360) a zobrazuje např. "c 90"
+   Tlačítko M2/S - uloží napětí (ve voltech) pro aktuální úhel → zobrazí "SEtc" a nastaví další úhel např. "c180"
+   Tlačítko M3/F  - uloží napětí pro MAX úhel → zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
 
- Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
+  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)
 
 
-// - Test propjení Tučňáka pomocí Hamlib protokolu
+  Propjení Tučňáka pomocí Hamlib protokolu
 
 // na ATmega328P (Arduino Uno, Nano, Pro Mini) mohou fungovat:
 // A0–A5   jako analogové vstupy i digitální výstupy
@@ -75,9 +75,9 @@
 #define CW_BUTTON 8   // Tlačítko CW
 
 // Piny pro BTS7960 - motor rotátoru
-#define CW_RUN_PIN 9    // pin L_PWM
 #define CCW_RUN_PIN 10  // pin R_PWM
 #define ENABLE_PWM 11   // pin EN_R + EN_L
+#define CW_RUN_PIN 12   // pin L_PWM
 
 // Neopixel 60 LED
 #define PIN_LED 13
@@ -86,14 +86,14 @@
 #define ANALOG_PIN A0
 
 // Tlačítka pro kalibraci a předvolbu rotátoru 1-3 ( kalibrace napětí/úhel )
-#define BUTTON_SET_PIN A1
-#define BUTTON_SAVE_PIN A2
-#define BUTTON_MAX_PIN A3
+#define BUTTON_CAL_PIN A1
+#define BUTTON_SET_PIN A2
+#define BUTTON_FULL_PIN A3
 
 
 /*
 // volné piny
-#define D12  
+#define D9   // PWM pin
 #define A4   // analogové vstupy i digitální výstupy
 #define A5   // analogové vstupy i digitální výstupy
 #define A6   // pouze analogový vstup  (nefunguje jako výstup)
@@ -119,12 +119,12 @@ const unsigned long updateInterval = 50;   //  interval aktualizace v ms
 unsigned long changeUpdateTime = 0;        // čas pro přepínání hodnot displeje
 const unsigned long changeInterval = 600;  //  interval aktualizace v ms
 int displayMode = 0;                       // 0 = zobrazení 'úhlu', 1 = zobrazení 'Auto'
-int displayBrightness = 0x02;              // Jas displeje
+int displayBrightness = 0x01;              // Jas displeje
 
 
 // Neopixel 60 LED
 int NumPixels = 60;                   // počet LED
-int LedBrightness = 30;               // JAS led pásku 10
+int LedBrightness = 2;                // JAS led pásku 10
 float DegPerLED = 360.0 / NumPixels;  // Počet stupňů na jednu LED
 
 
@@ -331,9 +331,9 @@ void setup() {
   digitalWrite(CW_RUN_PIN, LOW);
   digitalWrite(CCW_RUN_PIN, LOW);
 
+  pinMode(BUTTON_CAL_PIN, INPUT_PULLUP);
   pinMode(BUTTON_SET_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_SAVE_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_MAX_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_FULL_PIN, INPUT_PULLUP);
 
   // test LED a Displeje při startu MCU
   test_LED_DISPLAY();
@@ -354,7 +354,7 @@ void loop() {
   Hamlib_Tucnak();
 
   // ############################# kalibrace potenciometru ##############################
-  // pomocí tlačítek SET, SAVE, MAX
+  // pomocí tlačítek M1/C, M2/S, M3/F
   checkButtons();
 
   // ############################# Snímání azimutu (potenciometr) #############################
@@ -640,18 +640,18 @@ void checkButtons() {
   static bool buttonPressed = false;
   static uint8_t pressedButton = 0;
 
+  bool bCal = !digitalRead(BUTTON_CAL_PIN);
   bool bSet = !digitalRead(BUTTON_SET_PIN);
-  bool bSave = !digitalRead(BUTTON_SAVE_PIN);
-  bool bMax = !digitalRead(BUTTON_MAX_PIN);
+  bool bFull = !digitalRead(BUTTON_FULL_PIN);
 
   // Detekce stisku tlačítka
-  if ((bSet || bSave || bMax) && !buttonPressed) {
+  if ((bCal || bSet || bFull) && !buttonPressed) {
     buttonPressed = true;
     pressStart = millis();
 
-    if (bSet && !bSave && !bMax) pressedButton = 1;
-    else if (bSave && !bSet && !bMax) pressedButton = 2;
-    else if (bMax && !bSet && !bSave) pressedButton = 3;
+    if (bCal && !bSet && !bFull) pressedButton = 1;
+    else if (bSet && !bCal && !bFull) pressedButton = 2;
+    else if (bFull && !bCal && !bSet) pressedButton = 3;
     else pressedButton = 0;  // více tlačítek současně – ignorovat
 
     //Serial.print("Pressed button: ");
@@ -659,7 +659,7 @@ void checkButtons() {
   }
 
   // Tlačítko uvolněno
-  if (!bSet && !bSave && !bMax && buttonPressed) {
+  if (!bCal && !bSet && !bFull && buttonPressed) {
     buttonPressed = false;
     unsigned long pressDuration = millis() - pressStart;
 
