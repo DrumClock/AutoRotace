@@ -40,12 +40,15 @@
   - Tlačítko **`M2`**  - displej zobrazí "rot2"
   - Tlačítko **`M3`**  - displej zobrazí "rot3"
 
-  Dlouhý stisk libovolného tlačítka aktivuje/deaktivuje kalibraci.  <br>
-  displej zobrazí "CAL+číslo rotatoru" nebo "Endc" (při deaktivaci dojde k restartu MCU)  <br>
+  Dlouhý stisk libovolného tlačítka aktivuje kalibraci.  <br>
+  displej zobrazí "CAL+číslo rotatoru" <br>
   
   - Tlačítko **`C`**  - přepíná mezi kalibračnímy úhly (0,90,180,270,360) a displejv zobrazuje např. "c 90"
   - Tlačítko **`S`**  - uloží napětí (ve voltech) pro aktuální úhel displej zobrazí "SEtc" a nastaví další úhel např. "c180"
   - Tlačítko **`F`**  - uloží napětí pro MAX úhel displej zobrazuje "FuLL" ukončí kalibraci a restartuje MCU
+
+  Opětovný dlouhý stisk libovolného tlačítka deaktivuje kalibraci.  <br>
+  displej zobrazí  "Endc" a dojde k restartu MCU  <br> 
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)<br>
 
