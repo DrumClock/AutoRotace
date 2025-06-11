@@ -11,7 +11,7 @@
  - nastavení AUTOROTACE encoderem KY-040
  - kalibrace snímače a uložení do EEPROM (max. 3 rotátory)
 
-# Funkce ovládání
+# Ovládání
 
  Po zapnutí (resetu) dojde k testu všech LED a Displeje.
  Po testu se rozsvítí na kruhové mapě modrá LED na pozici 0 (sever),
@@ -29,7 +29,7 @@
  Takže mezi změnou směru je prodleva 1s, toto zabrání k rázům a zmenší namáhání převodů rotátoru.
 
 
- # Funkce tlačítek "Kalibrace"
+ # tlačítea "Kalibrace"
   Kalibrace nelinearity potenciometru pomocí tlačítek  **`M1/C`**, **`M2/S`**, **`M3/F`** a uložení do EEPROM 
 
  ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_kalibrace.jpg)
@@ -49,7 +49,7 @@
 
  Po 5 minutách nečinnosti se kalibrace automaticky ukončí (bez restartu MCU)<br>
 
- # Nastavení VHF logu Tučňák 
+ # Nastavení VHF logu "Tučňák" 
 ![Tucnak_frame](https://github.com/DrumClock/AutoRotace/blob/main/Tu%C4%8D%C5%88%C3%A1k%20-%20nastaven%C3%AD%20rot%C3%A1toru.png)
 
 Po tomto nastavení je aktivní odeslání azimutu:
