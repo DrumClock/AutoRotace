@@ -54,17 +54,17 @@
 
 Po tomto nastavení je aktivní odeslání azimutu:
 
-**`Alt+R`** - zadání azimutu ručně a odeslání <br>
+**`Alt+R`** - zadání azimutu ručně a odeslání <br><br>
 ![alt_r](https://github.com/DrumClock/AutoRotace/blob/main/alt_r.png)
  
-**`Ctrl+A`** - převezme azimut ze zadaného LOC <br>
+**`Ctrl+A`** - odešle např. azimut 195 st. ze zadaného čtverce JN51AD <br><br>
 ![ctrl_a](https://github.com/DrumClock/AutoRotace/blob/main/ctrl_a.png) 
 
-<br>
+<br><br>
 
 # Video:  https://youtu.be/hEBSZyiuYrg
 
-
+<br><br>
 # Schéma:
 ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/Arduino_Sever_2.png)
 
@@ -72,5 +72,9 @@ Po tomto nastavení je aktivní odeslání azimutu:
 - přiložený soubor **`mapa JN69NX.cdr`** je pro grafický editor **`CorelDraw`** 
 
 ![mapa_frame](https://github.com/DrumClock/AutoRotace/blob/main/mapa.png) 
+
+# složka CAD
+- obsahuje CAD soubory pro ohybaní plechů a 3D tisk dílů
+- k otevření je potřeba program FreeCAD : https://www.freecad.org
 
  
