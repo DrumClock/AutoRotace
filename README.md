@@ -29,7 +29,7 @@
  Takže mezi změnou směru je prodleva 1s, toto zabrání k rázům a zmenší namáhání převodů rotátoru.
 
 
- # tlačítea "Kalibrace"
+ # tlačítka "Kalibrace"
   Kalibrace nelinearity potenciometru pomocí tlačítek  **`M1/C`**, **`M2/S`**, **`M3/F`** a uložení do EEPROM 
 
  ![Scheme_frame](https://github.com/DrumClock/AutoRotace/blob/main/IMG_kalibrace.jpg)
