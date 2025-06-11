@@ -73,7 +73,7 @@ Po tomto nastavení je aktivní odeslání azimutu:
 
 ![mapa_frame](https://github.com/DrumClock/AutoRotace/blob/main/mapa.png) 
 
-# složka CAD
+# složka FreeCAD
 - obsahuje CAD soubory pro ohybaní plechů a 3D tisk dílů
 - k otevření je potřeba program FreeCAD : https://www.freecad.org
 
